@@ -1,6 +1,16 @@
 import Stripe from "stripe";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+// Lazily instantiated: "Secret"-type env vars on Vercel are only injected at
+// runtime, not during the build's page-data-collection step, so constructing
+// this at module load time would crash the build.
+let _stripe: Stripe | null = null;
+
+export function getStripe(): Stripe {
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+  }
+  return _stripe;
+}
 
 export const PLAN_PRICE_IDS = {
   starter: process.env.STRIPE_PRICE_STARTER!,

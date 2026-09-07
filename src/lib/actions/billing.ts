@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getOrigin } from "@/lib/origin";
-import { stripe, PLAN_PRICE_IDS, type Plan } from "@/lib/stripe";
+import { getStripe, PLAN_PRICE_IDS, type Plan } from "@/lib/stripe";
 import type { Subscription } from "@/types/subscription";
 
 export async function getSubscription(): Promise<Subscription | null> {
@@ -39,7 +39,7 @@ export async function startCheckout(plan: Plan) {
 
   const origin = await getOrigin();
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: "subscription",
     customer: existing?.stripe_customer_id ?? undefined,
     customer_email: existing?.stripe_customer_id ? undefined : user.email,
@@ -73,7 +73,7 @@ export async function openBillingPortal() {
   if (!sub?.stripe_customer_id) redirect("/dashboard/billing");
 
   const origin = await getOrigin();
-  const portalSession = await stripe.billingPortal.sessions.create({
+  const portalSession = await getStripe().billingPortal.sessions.create({
     customer: sub.stripe_customer_id,
     return_url: `${origin}/dashboard/billing`,
   });
